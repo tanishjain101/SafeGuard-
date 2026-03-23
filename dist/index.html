@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Safe Guard - Emergency Safety App</title>
+    <script type="module" crossorigin src="/assets/index-D023yheF.js"></script>
+  </head>
+  <body>
+    <script>
+      (function () {
+        window.__APP_BOOTSTRAPPED__ = false;
+        window.__APP_BOOTSTRAP_ATTEMPTED__ = false;
+        window.__APP_BOOT_ERROR__ = null;
+
+        function showBootIssue(message) {
+          var existing = document.getElementById('boot-issue');
+          if (existing) return;
+
+          var box = document.createElement('div');
+          box.id = 'boot-issue';
+          box.style.position = 'fixed';
+          box.style.top = '16px';
+          box.style.left = '16px';
+          box.style.right = '16px';
+          box.style.padding = '14px';
+          box.style.background = '#fee2e2';
+          box.style.border = '1px solid #ef4444';
+          box.style.borderRadius = '10px';
+          box.style.color = '#7f1d1d';
+          box.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, monospace';
+          box.style.fontSize = '13px';
+          box.style.zIndex = '99999';
+          box.innerHTML =
+            '<strong>App failed to start.</strong><br/>' +
+            message +
+            '<br/><br/>URL: ' +
+            window.location.href +
+            '<br/><br/>Try: hard refresh (Cmd+Shift+R) and verify URL is http://127.0.0.1:5173/';
+          document.body.appendChild(box);
+        }
+
+        if (window.location.protocol === 'file:') {
+          showBootIssue('This app cannot run from file://. Start Vite and open http://127.0.0.1:5173/');
+        }
+
+        window.addEventListener('app-boot-error', function (event) {
+          var detail = event && event.detail ? event.detail : {};
+          var text = detail.message || 'Unknown startup error';
+          if (detail.stack) {
+            text += '<br/><br/>' + String(detail.stack).replace(/\n/g, '<br/>');
+          }
+          showBootIssue(text);
+        });
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            if (!window.__APP_BOOTSTRAPPED__) {
+              var msg = (event && event.message) || 'Unknown startup error';
+              if (event && event.filename) {
+                msg += '<br/>at ' + event.filename + ':' + (event.lineno || '?') + ':' + (event.colno || '?');
+              }
+              showBootIssue(msg);
+            }
+          },
+          true
+        );
+
+        window.addEventListener('unhandledrejection', function (event) {
+          if (!window.__APP_BOOTSTRAPPED__) {
+            var reason = event && event.reason;
+            var msg = typeof reason === 'string' ? reason : (reason && reason.message) || 'Unhandled promise rejection';
+            if (reason && reason.stack) {
+              msg += '<br/><br/>' + String(reason.stack).replace(/\n/g, '<br/>');
+            }
+            showBootIssue(msg);
+          }
+        });
+
+        setTimeout(function () {
+          if (!window.__APP_BOOTSTRAPPED__) {
+            var message = 'Startup timeout. The app bundle may not have loaded.';
+            if (!window.__APP_BOOTSTRAP_ATTEMPTED__) {
+              message += '<br/>Bootstrap script did not run.';
+            } else if (window.__APP_BOOT_ERROR__ && window.__APP_BOOT_ERROR__.message) {
+              message += '<br/>' + window.__APP_BOOT_ERROR__.message;
+            }
+            showBootIssue(message);
+          }
+        }, 3000);
+      })();
+    </script>
+    <div id="root"></div>
+  </body>
+</html>
